@@ -75,13 +75,19 @@ async function handleRequest(request) {
             <option value="extractor">IPFS Command added提取器</option>
             <option value="cidv1">IPFS Command cid-v1 提取器</option>
             <option value="pinRetry">IPFS Remote Pin 重试器</option>
-            <option value="ipfsAddGenerator">IPFS Add 生成器</option> <!-- New mode added -->
+            <option value="ipfsAddGenerator">IPFS Add 生成器</option>
         </select>
 
         <!-- Extractor Mode -->
         <div id="extractorMode" class="container">
-            <input type="text" id="gatewayDomain" placeholder="Crust Network IPFS Gateway Domain" value="gateway.crustgateway.online">
+            <input type="text" id="gatewayDomain" placeholder="Crust Network IPFS Gateway Domain" value="gateway.crustgateway.com">
             <input type="text" id="serviceNickname" placeholder="Service Nickname" value="crust">
+            <div>
+                <label>
+                    <input type="checkbox" id="useHttps" checked>
+                    Use HTTPS for Gateway URLs
+                </label>
+            </div>
             <textarea id="inputBox" placeholder="Enter your input here..."></textarea>
             <div class="output-container">
                 <textarea id="outputBox1" placeholder="mkdir commands will be shown here..." readonly onclick="this.select()"></textarea>
@@ -185,6 +191,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                 const inputText = document.getElementById('inputBox').value.trim();
                 const gatewayDomain = document.getElementById('gatewayDomain').value.trim();
                 const serviceNickname = document.getElementById('serviceNickname').value.trim();
+                const useHttps = document.getElementById('useHttps').checked ? 'https' : 'http'; // Determine whether to use HTTP or HTTPS
                 const cleanedInput = cleanInput(inputText);
                 const lines = cleanedInput.split('\\n');
 
@@ -233,7 +240,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                         fileCIDs.push(cid);
 
                         const encodedFileName = encodeURIComponent(fileName);
-                        gatewayURLs.push(\`https://\${gatewayDomain}/ipfs/\${cid}?filename=\${encodedFileName}\`);
+                        gatewayURLs.push(\`\${useHttps}://\${gatewayDomain}/ipfs/\${cid}?filename=\${encodedFileName}\`); // Use specified HTTP or HTTPS
                         filePinCommands.push(\`ipfs pin remote add --service=\${serviceNickname} --background \${cid} --name "\${fileName}"\`);
                         filePinStatusCommands.push(\`ipfs pin remote ls --service=\${serviceNickname} --cid=\${cid} --status=pinned,pinning,failed,queued\`);
 
@@ -245,7 +252,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                         if (folderMatch) {
                             const folderCid = folderMatch[1];
                             folderCIDs.push(folderCid);
-                            folderGatewayURLs.push(\`https://\${gatewayDomain}/ipfs/\${folderCid}\`);
+                            folderGatewayURLs.push(\`\${useHttps}://\${gatewayDomain}/ipfs/\${folderCid}\`); // Use specified HTTP or HTTPS
                             folderPinCommand = \`ipfs pin remote add --service=\${serviceNickname} --background \${folderCid} --name "\${folderName}"\`;
                             folderPinStatusCommands.push(\`ipfs pin remote ls --service=\${serviceNickname} --cid=\${folderCid} --status=pinned,pinning,failed,queued\`);
 
