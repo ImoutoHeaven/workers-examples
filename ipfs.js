@@ -1,6 +1,6 @@
 addEventListener('fetch', event => {
-    event.respondWith(handleRequest(event.request))
-})
+    event.respondWith(handleRequest(event.request));
+});
 
 async function handleRequest(request) {
     const html = `
@@ -75,6 +75,7 @@ async function handleRequest(request) {
             <option value="extractor">IPFS Command added提取器</option>
             <option value="cidv1">IPFS Command cid-v1 提取器</option>
             <option value="pinRetry">IPFS Remote Pin 重试器</option>
+            <option value="ipfsAddGenerator">IPFS Add 生成器</option> <!-- New mode added -->
         </select>
 
         <!-- Extractor Mode -->
@@ -142,7 +143,6 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                 <textarea id="outputBoxFolderPinRetry" placeholder="ipfs remote pin add commands for folders will be shown here..." readonly onclick="this.select()"></textarea>
             </div>
             <div class="output-container">
-                <!-- 新增的输出框 -->
                 <textarea id="outputBoxFileStatusQuery" placeholder="File CID status query commands will be shown here..." readonly onclick="this.select()"></textarea>
                 <textarea id="outputBoxFolderStatusQuery" placeholder="Folder CID status query commands will be shown here..." readonly onclick="this.select()"></textarea>
             </div>
@@ -153,12 +153,25 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             </div>
         </div>
 
+        <!-- IPFS Add Generator Mode -->
+        <div id="ipfsAddGeneratorMode" class="container" style="display:none;">
+            <textarea id="folderInputBox" placeholder="输入ipfs files ls -l '/'获得的值..."></textarea>
+            <textarea id="filesInputBox" placeholder="输入ipfs files ls -l '/&lt;folder name&gt;'的返回..."></textarea>
+            <textarea id="outputAddCommands" placeholder="Generated IPFS Add Commands will be shown here..." readonly onclick="this.select()"></textarea>
+            <div class="buttons">
+                <button onclick="generateAddCommands()">Generate</button>
+                <button onclick="clearOutputAddCommands()">Clear</button>
+                <button onclick="copyOutputAddCommands()">Copy All</button>
+            </div>
+        </div>
+
         <script>
             function switchMode() {
                 const mode = document.getElementById('modeSelector').value;
                 document.getElementById('extractorMode').style.display = mode === 'extractor' ? 'block' : 'none';
                 document.getElementById('cidv1Mode').style.display = mode === 'cidv1' ? 'block' : 'none';
                 document.getElementById('pinRetryMode').style.display = mode === 'pinRetry' ? 'block' : 'none';
+                document.getElementById('ipfsAddGeneratorMode').style.display = mode === 'ipfsAddGenerator' ? 'block' : 'none';
             }
 
             function cleanInput(inputText) {
@@ -397,16 +410,16 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             function clearOutputPinRetry() {
                 document.getElementById('outputBoxFilePinRetry').value = '';
                 document.getElementById('outputBoxFolderPinRetry').value = '';
-                document.getElementById('outputBoxFileStatusQuery').value = ''; // 新增
-                document.getElementById('outputBoxFolderStatusQuery').value = ''; // 新增
+                document.getElementById('outputBoxFileStatusQuery').value = '';
+                document.getElementById('outputBoxFolderStatusQuery').value = '';
             } 
 
             function copyOutputPinRetry() {
                 const outputBoxes = [
                     document.getElementById('outputBoxFilePinRetry'),
                     document.getElementById('outputBoxFolderPinRetry'),
-                    document.getElementById('outputBoxFileStatusQuery'), // 新增
-                    document.getElementById('outputBoxFolderStatusQuery')  // 新增
+                    document.getElementById('outputBoxFileStatusQuery'),
+                    document.getElementById('outputBoxFolderStatusQuery')
                 ];
                 let allOutput = '';
                 outputBoxes.forEach(box => {
@@ -415,6 +428,53 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                     }
                 });
                 navigator.clipboard.writeText(allOutput.trim());
+            }
+
+            function generateAddCommands() {
+                const folderInput = document.getElementById('folderInputBox').value.trim();
+                const filesInput = document.getElementById('filesInputBox').value.trim();
+                
+                const folderLines = folderInput.split('\\n').filter(line => line.trim() !== '');
+                const fileLines = filesInput.split('\\n').filter(line => line.trim() !== '');
+
+                if (folderLines.length === 0 || fileLines.length === 0) {
+                    alert('Please provide both folder and file inputs.');
+                    return;
+                }
+
+                const folderParts = folderLines[0].split(/[\\t ]+/);
+                let folderName = folderParts.slice(0, -2).join(' ').trim();
+                const folderCid = folderParts[folderParts.length - 2].trim();
+
+                // Remove trailing slash from folder name if it exists
+                if (folderName.endsWith('/')) {
+                    folderName = folderName.slice(0, -1);
+                }
+
+                let output = '';
+
+                fileLines.forEach(line => {
+                    const fileParts = line.split(/[\\t ]+/);
+                    const fileName = fileParts.slice(0, -2).join(' ').trim();
+                    const fileCid = fileParts[fileParts.length - 2].trim();
+                    output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
+                });
+
+                output += \`added \${folderCid} \${folderName}\`;
+
+                document.getElementById('outputAddCommands').value = output;
+            }
+
+            function clearOutputAddCommands() {
+                document.getElementById('folderInputBox').value = '';
+                document.getElementById('filesInputBox').value = '';
+                document.getElementById('outputAddCommands').value = '';
+            }
+
+            function copyOutputAddCommands() {
+                const outputAddCommands = document.getElementById('outputAddCommands');
+                outputAddCommands.select();
+                document.execCommand('copy');
             }
         </script>  
     </body>
