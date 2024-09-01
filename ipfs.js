@@ -187,7 +187,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
 
         <script>
             function switchMode() {
-                var mode = document.getElementById('modeSelector').value;
+                const mode = document.getElementById('modeSelector').value;
                 document.getElementById('extractorMode').style.display = mode === 'extractor' ? 'block' : 'none';
                 document.getElementById('cidv1Mode').style.display = mode === 'cidv1' ? 'block' : 'none';
                 document.getElementById('pinRetryMode').style.display = mode === 'pinRetry' ? 'block' : 'none';
@@ -196,57 +196,57 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function cleanInput(inputText) {
-                return inputText.replace(/\\u001b\\[[0-9;]*[a-zA-Z]/g, '').split('\\n').map(function(line) {
-                    var addedIndex = line.indexOf('added');
+                return inputText.replace(/\\u001b\\[[0-9;]*[a-zA-Z]/g, '').split('\\n').map(line => {
+                    const addedIndex = line.indexOf('added');
                     return addedIndex !== -1 ? line.substring(addedIndex) : '';
-                }).filter(function(line) { return line.trim() !== ''; }).join('\\n');
+                }).filter(line => line.trim() !== '').join('\\n');
             }
 
             function generateCommands() {
-                var inputText = document.getElementById('inputBox').value.trim();
-                var gatewayDomain = document.getElementById('gatewayDomain').value.trim();
-                var serviceNickname = document.getElementById('serviceNickname').value.trim();
-                var useHttps = document.getElementById('useHttps').checked ? 'https' : 'http'; // Determine whether to use HTTP or HTTPS
-                var cleanedInput = cleanInput(inputText);
-                var lines = cleanedInput.split('\\n');
+                const inputText = document.getElementById('inputBox').value.trim();
+                const gatewayDomain = document.getElementById('gatewayDomain').value.trim();
+                const serviceNickname = document.getElementById('serviceNickname').value.trim();
+                const useHttps = document.getElementById('useHttps').checked ? 'https' : 'http'; // Determine whether to use HTTP or HTTPS
+                const cleanedInput = cleanInput(inputText);
+                const lines = cleanedInput.split('\\n');
 
-                var outputBox1 = document.getElementById('outputBox1');
-                var outputBox2 = document.getElementById('outputBox2');
-                var outputBox3 = document.getElementById('outputBox3');
-                var outputBox4 = document.getElementById('outputBox4');
-                var outputBox5 = document.getElementById('outputBox5');
-                var outputBox6 = document.getElementById('outputBox6');
-                var outputBox7 = document.getElementById('outputBox7');
-                var outputBox8 = document.getElementById('outputBox8');
-                var outputBox9 = document.getElementById('outputBox9');
-                var outputBox10 = document.getElementById('outputBox10');
-                var outputBox11 = document.getElementById('outputBox11');
-                var outputBox12 = document.getElementById('outputBox12');
-                var outputBox13 = document.getElementById('outputBox13');
+                const outputBox1 = document.getElementById('outputBox1');
+                const outputBox2 = document.getElementById('outputBox2');
+                const outputBox3 = document.getElementById('outputBox3');
+                const outputBox4 = document.getElementById('outputBox4');
+                const outputBox5 = document.getElementById('outputBox5');
+                const outputBox6 = document.getElementById('outputBox6');
+                const outputBox7 = document.getElementById('outputBox7');
+                const outputBox8 = document.getElementById('outputBox8');
+                const outputBox9 = document.getElementById('outputBox9');
+                const outputBox10 = document.getElementById('outputBox10');
+                const outputBox11 = document.getElementById('outputBox11');
+                const outputBox12 = document.getElementById('outputBox12');
+                const outputBox13 = document.getElementById('outputBox13');
 
-                var folderName = '';
-                var mkdirCommands = [];
-                var cpCommands = [];
-                var lsCommand = '';
-                var fileCIDs = [];
-                var folderCIDs = [];
-                var gatewayURLs = [];
-                var folderGatewayURLs = [];
-                var fileBase32Commands = [];
-                var folderBase32Commands = [];
-                var filePinCommands = [];
-                var folderPinCommand = '';
-                var filePinStatusCommands = [];
-                var folderPinStatusCommands = [];
+                let folderName = '';
+                let mkdirCommands = [];
+                let cpCommands = [];
+                let lsCommand = '';
+                let fileCIDs = [];
+                let folderCIDs = [];
+                let gatewayURLs = [];
+                let folderGatewayURLs = [];
+                let fileBase32Commands = [];
+                let folderBase32Commands = [];
+                let filePinCommands = [];
+                let folderPinCommand = '';
+                let filePinStatusCommands = [];
+                let folderPinStatusCommands = [];
 
-                lines.forEach(function(line) {
-                    var match = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)\\/(.+)$/);
+                lines.forEach((line) => {
+                    const match = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)\\/(.+)$/);
                     if (match) {
-                        var cid = match[1];
+                        const cid = match[1];
                         folderName = match[2];
-                        var fileName = match[3];
+                        const fileName = match[3];
 
-                        if (mkdirCommands.indexOf(\`ipfs files mkdir "/\${folderName}"\`) === -1) {
+                        if (!mkdirCommands.includes(\`ipfs files mkdir "/\${folderName}"\`)) {
                             mkdirCommands.push(\`ipfs files mkdir "/\${folderName}"\`);
                             lsCommand = \`ipfs files ls -l "/\${folderName}"\`;
                         }
@@ -254,7 +254,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                         cpCommands.push(\`ipfs files cp "/ipfs/\${cid}" "/\${folderName}/\${fileName}"\`);
                         fileCIDs.push(cid);
 
-                        var encodedFileName = encodeURIComponent(fileName);
+                        const encodedFileName = encodeURIComponent(fileName);
                         gatewayURLs.push(\`\${useHttps}://\${gatewayDomain}/ipfs/\${cid}?filename=\${encodedFileName}\`); // Use specified HTTP or HTTPS
                         filePinCommands.push(\`ipfs pin remote add --service=\${serviceNickname} --background \${cid} --name "\${fileName}"\`);
                         filePinStatusCommands.push(\`ipfs pin remote ls --service=\${serviceNickname} --cid=\${cid} --status=pinned,pinning,failed,queued\`);
@@ -263,9 +263,9 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                             fileBase32Commands.push(\`ipfs cid base32 \${cid}\`);
                         }
                     } else {
-                        var folderMatch = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)$/);
+                        const folderMatch = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)$/);
                         if (folderMatch) {
-                            var folderCid = folderMatch[1];
+                            const folderCid = folderMatch[1];
                             folderCIDs.push(folderCid);
                             folderGatewayURLs.push(\`\${useHttps}://\${gatewayDomain}/ipfs/\${folderCid}\`); // Use specified HTTP or HTTPS
                             folderPinCommand = \`ipfs pin remote add --service=\${serviceNickname} --background \${folderCid} --name "\${folderName}"\`;
@@ -321,7 +321,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function copyOutput() {
-                var outputBoxes = [
+                const outputBoxes = [
                     document.getElementById('outputBox1'),
                     document.getElementById('outputBox2'),
                     document.getElementById('outputBox3'),
@@ -336,8 +336,8 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                     document.getElementById('outputBox12'),
                     document.getElementById('outputBox13')
                 ];
-                var allOutput = '';
-                outputBoxes.forEach(function(box) {
+                let allOutput = '';
+                outputBoxes.forEach(box => {
                     if (box.value) {
                         allOutput += box.value + '\\n';
                     }
@@ -346,12 +346,12 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function extractCids() {
-                var inputText = document.getElementById('inputBoxCidv1').value.trim();
-                var lines = inputText.split('\\n');
-                var extractedCids = [];
+                const inputText = document.getElementById('inputBoxCidv1').value.trim();
+                const lines = inputText.split('\\n');
+                let extractedCids = [];
 
-                lines.forEach(function(line) {
-                    var cidMatch = line.match(/bafy[a-z0-9]+|bafk[a-z0-9]+/);
+                lines.forEach(line => {
+                    const cidMatch = line.match(/bafy[a-z0-9]+|bafk[a-z0-9]+/);
                     if (cidMatch) {
                         extractedCids.push(cidMatch[0]);
                     }
@@ -365,33 +365,33 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function copyOutputCidv1() {
-                var outputBoxCidv1 = document.getElementById('outputBoxCidv1');
+                const outputBoxCidv1 = document.getElementById('outputBoxCidv1');
                 outputBoxCidv1.select();
                 document.execCommand('copy');
             }
 
             function generatePinRetry() {
-                var inputAddedText = document.getElementById('inputBoxAddedRetry').value.trim();
-                var inputCidText = document.getElementById('inputBoxCidRetry').value.trim();
-                var serviceNickname = document.getElementById('serviceNicknameRetry').value.trim();
-                var addedLines = inputAddedText.split('\\n');
-                var cidLines = inputCidText.split('\\n');
+                const inputAddedText = document.getElementById('inputBoxAddedRetry').value.trim();
+                const inputCidText = document.getElementById('inputBoxCidRetry').value.trim();
+                const serviceNickname = document.getElementById('serviceNicknameRetry').value.trim();
+                const addedLines = inputAddedText.split('\\n');
+                const cidLines = inputCidText.split('\\n');
 
-                var addedCids = new Set();
-                var cidSet = new Set();
-                var fileCidNameMap = {};
-                var folderCidNameMap = {};
+                let addedCids = new Set();
+                let cidSet = new Set();
+                let fileCidNameMap = {};
+                let folderCidNameMap = {};
 
-                addedLines.forEach(function(line) {
-                    var match = line.match(/^added\\s+([^\\s]+)\\s+(.+)$/);
+                addedLines.forEach(line => {
+                    const match = line.match(/^added\\s+([^\\s]+)\\s+(.+)$/);
                     if (match) {
-                        var cid = match[1];
-                        var name = match[2];
+                        const cid = match[1];
+                        const name = match[2];
                         addedCids.add(cid);
                         if (name.includes('/')) {
-                            var parts = name.split('/');
-                            var folderName = parts[0];
-                            var fileName = parts.slice(1).join('/');
+                            const parts = name.split('/');
+                            const folderName = parts[0];
+                            const fileName = parts.slice(1).join('/');
                             fileCidNameMap[cid] = fileName;
                         } else {
                             folderCidNameMap[cid] = name;
@@ -399,19 +399,19 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                     }
                 });
 
-                cidLines.forEach(function(line) {
-                    var trimmedCid = line.trim();
+                cidLines.forEach(line => {
+                    const trimmedCid = line.trim();
                     if (trimmedCid) {
                         cidSet.add(trimmedCid);
                     }
                 });
 
-                var filePinCommands = [];
-                var folderPinCommands = [];
-                var fileStatusQueries = [];
-                var folderStatusQueries = [];
+                let filePinCommands = [];
+                let folderPinCommands = [];
+                let fileStatusQueries = [];
+                let folderStatusQueries = [];
 
-                addedCids.forEach(function(cid) {
+                addedCids.forEach(cid => {
                     if (cidSet.has(cid)) {
                         if (fileCidNameMap[cid]) {
                             filePinCommands.push(\`ipfs pin remote add --service=\${serviceNickname} --background \${cid} --name "\${fileCidNameMap[cid]}"\`);
@@ -437,14 +437,14 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             } 
 
             function copyOutputPinRetry() {
-                var outputBoxes = [
+                const outputBoxes = [
                     document.getElementById('outputBoxFilePinRetry'),
                     document.getElementById('outputBoxFolderPinRetry'),
                     document.getElementById('outputBoxFileStatusQuery'),
                     document.getElementById('outputBoxFolderStatusQuery')
                 ];
-                var allOutput = '';
-                outputBoxes.forEach(function(box) {
+                let allOutput = '';
+                outputBoxes.forEach(box => {
                     if (box.value) { 
                         allOutput += box.value + '\\n';
                     }
@@ -453,32 +453,32 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function generateAddCommands() {
-                var folderInput = document.getElementById('folderInputBox').value.trim();
-                var filesInput = document.getElementById('filesInputBox').value.trim();
+                const folderInput = document.getElementById('folderInputBox').value.trim();
+                const filesInput = document.getElementById('filesInputBox').value.trim();
                 
-                var folderLines = folderInput.split('\\n').filter(function(line) { return line.trim() !== ''; });
-                var fileLines = filesInput.split('\\n').filter(function(line) { return line.trim() !== ''; });
+                const folderLines = folderInput.split('\\n').filter(line => line.trim() !== '');
+                const fileLines = filesInput.split('\\n').filter(line => line.trim() !== '');
 
                 if (folderLines.length === 0 || fileLines.length === 0) {
                     alert('Please provide both folder and file inputs.');
                     return;
                 }
 
-                var folderParts = folderLines[0].split(/[\\t ]+/);
-                var folderName = folderParts.slice(0, -2).join(' ').trim();
-                var folderCid = folderParts[folderParts.length - 2].trim();
+                const folderParts = folderLines[0].split(/[\\t ]+/);
+                let folderName = folderParts.slice(0, -2).join(' ').trim();
+                const folderCid = folderParts[folderParts.length - 2].trim();
 
                 // Remove trailing slash from folder name if it exists
                 if (folderName.endsWith('/')) {
                     folderName = folderName.slice(0, -1);
                 }
 
-                var output = '';
+                let output = '';
 
-                fileLines.forEach(function(line) {
-                    var fileParts = line.split(/[\\t ]+/);
-                    var fileName = fileParts.slice(0, -2).join(' ').trim();
-                    var fileCid = fileParts[fileParts.length - 2].trim();
+                fileLines.forEach(line => {
+                    const fileParts = line.split(/[\\t ]+/);
+                    const fileName = fileParts.slice(0, -2).join(' ').trim();
+                    const fileCid = fileParts[fileParts.length - 2].trim();
                     output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
                 });
 
@@ -494,37 +494,37 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function copyOutputAddCommands() {
-                var outputAddCommands = document.getElementById('outputAddCommands');
+                const outputAddCommands = document.getElementById('outputAddCommands');
                 outputAddCommands.select();
                 document.execCommand('copy');
             }
 
             function generateUrlAddCommands() {
-                var fileUrlsInput = document.getElementById('urlInputBox1').value.trim();
-                var folderUrlInput = document.getElementById('urlInputBox2').value.trim();
-                var folderName = document.getElementById('folderNameInput').value.trim();
+                const fileUrlsInput = document.getElementById('urlInputBox1').value.trim();
+                const folderUrlInput = document.getElementById('urlInputBox2').value.trim();
+                const folderName = document.getElementById('folderNameInput').value.trim();
 
                 if (!fileUrlsInput || !folderUrlInput || !folderName) {
                     alert('Please fill in all input fields.');
                     return;
                 }
 
-                var fileUrls = fileUrlsInput.split('\\n').map(function(url) { return url.trim(); }).filter(function(url) { return url; });
-                var folderUrlMatch = folderUrlInput.match(/\\/ipfs\\/([^/?#]+)/);
-                var folderCid = folderUrlMatch ? folderUrlMatch[1] : '';
+                const fileUrls = fileUrlsInput.split('\\n').map(url => url.trim()).filter(url => url);
+                const folderUrlMatch = folderUrlInput.match(/\\/ipfs\\/([^/?#]+)/);
+                const folderCid = folderUrlMatch ? folderUrlMatch[1] : '';
 
                 if (!folderCid) {
                     alert('Invalid folder CID URL.');
                     return;
                 }
 
-                var output = '';
+                let output = '';
 
-                fileUrls.forEach(function(url) {
-                    var fileMatch = url.match(/\\/ipfs\\/([^/?#]+)\\?filename=([^&#]+)/); 
+                fileUrls.forEach(url => {
+                    const fileMatch = url.match(/\\/ipfs\\/([^/?#]+)\\?filename=([^&#]+)/);
                     if (fileMatch) {
-                        var fileCid = fileMatch[1];
-                        var fileName = decodeURIComponent(fileMatch[2]);
+                        const fileCid = fileMatch[1];
+                        const fileName = decodeURIComponent(fileMatch[2]);
                         output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
                     }
                 });
@@ -541,7 +541,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
             }
 
             function copyOutputUrlAddCommands() {
-                var outputUrlAddCommands = document.getElementById('outputUrlAddCommands');
+                const outputUrlAddCommands = document.getElementById('outputUrlAddCommands');
                 outputUrlAddCommands.select();
                 document.execCommand('copy');
             }
