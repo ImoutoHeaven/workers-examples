@@ -452,40 +452,69 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                 navigator.clipboard.writeText(allOutput.trim());
             }
 
-            function generateAddCommands() {
-                const folderInput = document.getElementById('folderInputBox').value.trim();
-                const filesInput = document.getElementById('filesInputBox').value.trim();
-                
-                const folderLines = folderInput.split('\\n').filter(line => line.trim() !== '');
-                const fileLines = filesInput.split('\\n').filter(line => line.trim() !== '');
+function generateAddCommands() {
+    const folderInput = document.getElementById('folderInputBox').value.trim();
+    const filesInput = document.getElementById('filesInputBox').value.trim();
+    
+    // 判断输入框1是否为空
+    if (folderInput === '') {
+        // 输入框1为空时的逻辑：使用"NaN"作为文件夹名称，不输出文件夹的added信息
+        const folderName = 'NaN'; // 使用占位符"NaN"
+        const fileLines = filesInput.split('\\n').filter(line => line.trim() !== '');
 
-                if (folderLines.length === 0 || fileLines.length === 0) {
-                    alert('Please provide both folder and file inputs.');
-                    return;
-                }
+        if (fileLines.length === 0) {
+            alert('Please provide file inputs.');
+            return;
+        }
 
-                const folderParts = folderLines[0].split(/[\\t ]+/);
-                let folderName = folderParts.slice(0, -2).join(' ').trim();
-                const folderCid = folderParts[folderParts.length - 2].trim();
+        let output = '';
+        fileLines.forEach(line => {
+            const fileParts = line.split(/[ \\t]+/);
+            const fileName = fileParts.slice(0, -2).join(' ').trim();
+            const fileCid = fileParts[fileParts.length - 2].trim();
+            output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
+        });
 
-                // Remove trailing slash from folder name if it exists
-                if (folderName.endsWith('/')) {
-                    folderName = folderName.slice(0, -1);
-                }
+        // 不输出文件夹的 added 信息
+        document.getElementById('outputAddCommands').value = output.trim();
 
-                let output = '';
+    } else {
+        // 原始逻辑：输入框1不为空时执行原始逻辑
+        const folderLines = folderInput.split('\\n').filter(line => line.trim() !== '');
+        const fileLines = filesInput.split('\\n').filter(line => line.trim() !== ''); 
 
-                fileLines.forEach(line => {
-                    const fileParts = line.split(/[\\t ]+/);
-                    const fileName = fileParts.slice(0, -2).join(' ').trim();
-                    const fileCid = fileParts[fileParts.length - 2].trim();
-                    output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
-                });
+        if (folderLines.length === 0 || fileLines.length === 0) {
+            alert('Please provide both folder and file inputs.');
+            return;
+        }
 
-                output += \`added \${folderCid} \${folderName}\`;
+        const folderParts = folderLines[0].split(/[ \\t]+/);
+        let folderName = folderParts.slice(0, -2).join(' ').trim();
+        const folderCid = folderParts[folderParts.length - 2].trim();
 
-                document.getElementById('outputAddCommands').value = output;
-            }
+        // 移除文件夹名称中的斜杠
+        if (folderName.endsWith('/')) {
+            folderName = folderName.slice(0, -1);
+        }
+
+        let output = '';
+
+        fileLines.forEach(line => {
+            const fileParts = line.split(/[ \\t]+/);
+            const fileName = fileParts.slice(0, -2).join(' ').trim();
+            const fileCid = fileParts[fileParts.length - 2].trim();
+            output += \`added \${fileCid} \${folderName}/\${fileName}\\n\`;
+        });
+
+        // 最后一行是文件夹的 added 信息
+        output += \`added \${folderCid} \${folderName}\`;
+
+        document.getElementById('outputAddCommands').value = output;
+    }
+}
+
+
+
 
             function clearOutputAddCommands() {
                 document.getElementById('folderInputBox').value = '';
