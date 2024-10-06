@@ -77,6 +77,7 @@ async function handleRequest(request) {
             <option value="pinRetry">IPFS Remote Pin 重试器</option>
             <option value="ipfsAddGenerator">IPFS Add 生成器</option>
             <option value="ipfsAddedUrlGenerator">IPFS Added生成器 (URL模式)</option>
+			<option value="fileTableGenerator">IPFS File Table生成器</option>
         </select>
 
         <!-- Extractor Mode -->
@@ -184,6 +185,20 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                 <button onclick="copyOutputUrlAddCommands()">Copy All</button>
             </div>
         </div>
+		
+		<!-- File Table Generator Mode -->
+        <div id="fileTableGeneratorMode" class="container" style="display:none;">
+            <textarea id="fileTableInputBox" placeholder="输入'added'字符串..."></textarea>
+            <div class="output-container">
+                <textarea id="outputFileTable1" placeholder="File table output will be shown here..." readonly onclick="this.select()"></textarea>
+                <textarea id="outputFileTable2" placeholder="Folder CID output will be shown here..." readonly onclick="this.select()"></textarea>
+            </div>
+            <div class="buttons">
+                <button onclick="generateFileTable()">Generate</button>
+                <button onclick="clearFileTableOutput()">Clear</button>
+                <button onclick="copyFileTableOutput()">Copy All</button>
+            </div>
+        </div>
 
         <script>
             function switchMode() {
@@ -193,6 +208,7 @@ added &lt;folder cid&gt; &lt;folder name&gt;</code></pre>
                 document.getElementById('pinRetryMode').style.display = mode === 'pinRetry' ? 'block' : 'none';
                 document.getElementById('ipfsAddGeneratorMode').style.display = mode === 'ipfsAddGenerator' ? 'block' : 'none';
                 document.getElementById('ipfsAddedUrlGeneratorMode').style.display = mode === 'ipfsAddedUrlGenerator' ? 'block' : 'none';
+				document.getElementById('fileTableGeneratorMode').style.display = mode === 'fileTableGenerator' ? 'block' : 'none';
             }
 
             function cleanInput(inputText) {
@@ -574,6 +590,47 @@ function generateAddCommands() {
                 outputUrlAddCommands.select();
                 document.execCommand('copy');
             }
+			
+			function generateFileTable() {
+                const inputText = document.getElementById('fileTableInputBox').value.trim();
+                const lines = inputText.split('\\n');
+
+                let fileTableOutput = [];
+                let folderCidOutput = '';
+
+                lines.forEach(line => {
+                    const match = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)\\/(.+)$/);
+                    if (match) {
+                        const cid = match[1];
+                        const fileName = match[3];
+                        fileTableOutput.push(\`\${fileName}\\t\${cid}\\t0\`);
+                    } else {
+                        const folderMatch = line.match(/^added\\s+([^\\s]+)\\s+([^\\/]+)$/);
+                        if (folderMatch) {
+                            const folderCid = folderMatch[1];
+                            const folderName = folderMatch[2];
+                            folderCidOutput = \`\${folderName}\\t\${folderCid}\\t0\`;
+                        }
+                    }
+                });
+
+                document.getElementById('outputFileTable1').value = fileTableOutput.join('\\n');
+                document.getElementById('outputFileTable2').value = folderCidOutput;
+            }
+
+            function clearFileTableOutput() {
+                document.getElementById('outputFileTable1').value = '';
+                document.getElementById('outputFileTable2').value = '';
+            }
+
+            function copyFileTableOutput() {
+                const outputFileTable1 = document.getElementById('outputFileTable1');
+                const outputFileTable2 = document.getElementById('outputFileTable2');
+                const allOutput = outputFileTable1.value + '\\n' + outputFileTable2.value;
+                navigator.clipboard.writeText(allOutput.trim());
+            }
+			
+			
         </script>  
     </body>
     </html>
