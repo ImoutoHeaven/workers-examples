@@ -9,100 +9,129 @@ magnet.js - magnet URL name Decoder and extractor.
 
 
 
-# IPFS Command Generator (Cloudflare Workers) - ipfs.js
 
-This project provides an IPFS command generator hosted on Cloudflare Workers. It offers several modes for generating IPFS-related commands, such as adding files to IPFS, extracting CIDs, and generating remote pin retry commands.
+# IPFS Command Generator
+
+This project provides a tool based on Cloudflare Workers to generate and handle various IPFS commands. It includes several modes, each designed to fulfill specific tasks such as extracting IPFS CIDs, retrying pin operations, generating IPFS add commands, and more.
 
 ## Features
-- **IPFS Command added提取器**: Extracts commands for handling files and folders added to IPFS.
-- **CIDv1 提取器**: Extracts CIDs in version 1 from provided input.
-- **IPFS Remote Pin 重试器**: Generates commands to retry IPFS remote pinning.
-- **IPFS Add 生成器**: Creates commands for adding files to IPFS.
-- **IPFS Added生成器 (URL模式)**: Generates IPFS added commands using URLs.
+- **IPFS Command Extractor**: Extracts commands for handling files and folders added to IPFS.
+- **CID-v1 Extractor**: Extracts CIDv1 hashes from input.
+- **Remote Pin Retry**: Generates commands to retry pinning operations remotely.
+- **IPFS Add Generator**: Generates `ipfs add` commands based on IPFS file listings.
+- **IPFS Added URL Generator**: Generates commands from IPFS URLs.
+- **File Table Generator**: Creates a file table listing CIDs and filenames.
 
 ## Installation
+Clone the repository and deploy using Cloudflare Workers.
 
-To use this tool, you need to deploy the provided `ipfs.js` script to a Cloudflare Worker. 
+```bash
+git clone <repository-url>
+```
 
-1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com/).
-2. Create a new Cloudflare Worker.
-3. Copy and paste the code from `ipfs.js` into the worker's script section.
-4. Save and deploy the worker.
+Ensure you have the required dependencies for Cloudflare Workers in place.
 
 ## Usage
 
-The tool supports multiple modes that can be switched via a dropdown on the webpage. Below are the details for each mode:
+### 1. IPFS Command Extractor Mode
 
-### 1. IPFS Command added提取器
-This mode extracts commands for files and folders added to IPFS.
-
-**Input Example:**
+**Example Input:**
 ```
-added QmExampleCID1 foldername/filename1
-added QmExampleCID2 foldername/filename2
-added QmFolderCID foldername
+added QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf folder1/file1.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35 folder1/file2.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36 folder1
 ```
 
-**Output Example:**
-- mkdir commands
-- cp commands
-- ls command
-- File and Folder CID lists
-- Gateway URLs
-- Pin commands and status check commands
-
-### 2. CIDv1 提取器
-This mode extracts version 1 CIDs from the input.
-
-**Input Example:**
+**Example Output:**
 ```
-added bafyExampleCID foldername/filename
+ipfs files mkdir "/folder1"
+ipfs files cp "/ipfs/QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf" "/folder1/file1.txt"
+ipfs files cp "/ipfs/QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35" "/folder1/file2.txt"
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36 folder1
 ```
 
-**Output Example:**
-- Extracted CIDs
+### 2. CID-v1 Extractor Mode
 
-### 3. IPFS Remote Pin 重试器
-Generates IPFS remote pin retry commands based on added inputs and CID lists.
-
-**Input Example:**
+**Example Input:**
 ```
-added QmExampleCID1 foldername/filename1
-added QmExampleCID2 foldername/filename2
-QmExampleCID1
-QmExampleCID2
+bafybeibwzifcbowbjczcnpbl5pbrshrfjslwz2w7nrabth64zzrfsykgba
 ```
 
-**Output Example:**
-- Pin retry commands
-- Status query commands
-
-### 4. IPFS Add 生成器
-Generates IPFS add commands based on file and folder structure inputs.
-
-**Input Example:**
+**Example Output:**
 ```
-foldername/
-filename1 QmExampleCID1
-filename2 QmExampleCID2
+bafybeibwzifcbowbjczcnpbl5pbrshrfjslwz2w7nrabth64zzrfsykgba
 ```
 
-**Output Example:**
-- `ipfs add` commands
+### 3. IPFS Remote Pin Retry
 
-### 5. IPFS Added生成器 (URL模式)
-Generates IPFS add commands from provided URLs.
-
-**Input Example:**
+**Example Input:**
+- Added entries: 
 ```
-https://gateway.ipfs.io/ipfs/QmExampleCID1?filename=filename1
-https://gateway.ipfs.io/ipfs/QmFolderCID
-foldername
+added QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf folder1/file1.txt
+```
+- CID list: 
+```
+QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf
 ```
 
-**Output Example:**
-- Added commands for files and folders
+**Example Output:**
+```
+ipfs pin remote add --service=crust --background QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf --name "file1.txt"
+```
+
+### 4. IPFS Add Generator
+
+**Input:**
+- Folder listing: `ipfs files ls -l "/"`.
+- Files listing: `ipfs files ls -l "/folder-name"`.
+
+**Example Output:**
+```
+added QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf folder1/file1.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36 folder1
+```
+
+### 5. IPFS Added URL Generator
+
+This mode generates `ipfs added` commands based on provided IPFS file URLs and folder CID URL.
+
+**Input:**
+- File URLs (one per line):
+```
+https://gateway.crust.network/ipfs/QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf?filename=file1.txt
+https://gateway.crust.network/ipfs/QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35?filename=file2.txt
+```
+- Folder CID URL:
+```
+https://gateway.crust.network/ipfs/QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36
+```
+- Folder name: `folder1`
+
+**Example Output:**
+```
+added QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf folder1/file1.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35 folder1/file2.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36 folder1
+```
+
+### 6. File Table Generator
+
+This mode generates a file table with filenames, their corresponding CIDs, and sizes (currently set to `0`).
+
+**Input:**
+```
+added QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf folder1/file1.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35 folder1/file2.txt
+added QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36 folder1
+```
+
+**Example Output:**
+```
+file1.txt	QmTzQ1z4BbYxA7wQVsn2jfUwQR8HGqWwhLQmxM7FcTLMEf	0
+file2.txt	QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY35	0
+folder1	QmWmyoCVmY7koSbG1wbyL7Q9czqjYxPyDAf24T2GceMY36	0
+```
 
 ## License
+No License. Use At Your Own Risk.
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
